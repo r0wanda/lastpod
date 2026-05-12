@@ -1,15 +1,18 @@
+#include <string>
 #include <iostream>
 #include <gpod/itdb.h>
 #include <curlpp/cURLpp.hpp>
 #include "Lastfm.hpp"
+#include "Cache.hpp"
 #include "laserpants/dotenv.h"
 #define GERROR(e, fatal) if (e) { if (e->message) std::cerr << e->message; g_error_free(e); e = NULL; if (fatal) return 1; }
 
 int main(int argc, char **argv) {
 	cURLpp::initialize();
 	dotenv::init();
+
 	Lastfm lfm(std::getenv("LASTFM_API_KEY"));
-	return 0;
+	Cache cache();
 
 	GError *err = nullptr;
 	Itdb_iTunesDB *itdb;
@@ -28,6 +31,17 @@ int main(int argc, char **argv) {
 	for (it = itdb->tracks; it != NULL; it = it->next) {
 		Itdb_Track *tr = (Itdb_Track*)it->data;
 		if (tr->playcount < 1) continue;
+		std::string title(tr->title);
+		unsigned short playcount = static_cast<unsigned short>(tr->playcount);
+		unsigned long ts = static_cast<unsigned long>(tr->time_played);
+
+		cache.dbset(&cache.db, playcount, ts);
+		try {
+			auto cData = cache.initdb.at(tr->title);
+			
+		} catch (...) {
+			continue;
+		}
 		std::cout << tr->title << ": " << tr->playcount << " @ " << tr->time_played << std::endl;
 	}
 
