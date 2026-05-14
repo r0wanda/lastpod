@@ -136,27 +136,28 @@ public:
 		int i = 0;
 		Scrobble *prev = nullptr;
 		for (Scrobble *sc = tracks; sc->next != nullptr; sc = sc->next) {
+			if (i == 50) {
+				std::cerr << "too many tracks in one batch" << std::endl;
+				break;
+			}
 			free(prev);
 			Itdb_Track *tr = sc->track;
 			if (!tr) continue;
-			scrobbleI(&body, i, "artist", tr->artist);
-			scrobbleI(&body, i, "track", tr->title);
-			scrobbleI(&body, i, "timestamp", sc->ts);
-			scrobbleI(&body, i, "album", tr->album);
-			scrobbleI(&body, i, "duration", tr->tracklen / 1000);
+			body[scrobbleI(i, "artist")] = std::string(tr->artist);
+			body[scrobbleI(i, "track")] = std::string(tr->title);
+			body[scrobbleI(i, "timestamp")] = std::to_string(sc->ts);
+			body[scrobbleI(i, "album")] = std::string(tr->album);
+			body[scrobbleI(i, "duration")] = std::to_string(tr->tracklen / 1000);
 			prev = sc;
 		}
 		free(prev);
 		post("track.scrobble", body);
 	}
 private:
-	template <typename T>
-	void scrobbleI(std::map<std::string, std::string> *body, int i, std::string key, T val) {
+	inline std::string scrobbleI(int i, std::string key) {
 		std::ostringstream sstrm;
-		std::ostringstream vstrm;
 		sstrm << key << "[" << i << "]";
-		vstrm << val;
-		(*body)[sstrm.str()] = vstrm.str();
+		return sstrm.str();
 	}
 	std::string md5(std::string sig) {
 		std::ostringstream ssig;
