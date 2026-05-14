@@ -11,8 +11,9 @@ int main(int argc, char **argv) {
 	cURLpp::initialize();
 	dotenv::init();
 
-	Lastfm lfm(std::getenv("LASTFM_API_KEY"));
-	Cache cache();
+	Lastfm lfm(std::getenv("LASTFM_API_KEY"), std::getenv("LASTFM_API_SECRET"));
+	Cache cache;
+	lfm.load(&cache);
 
 	GError *err = nullptr;
 	Itdb_iTunesDB *itdb;
@@ -28,6 +29,9 @@ int main(int argc, char **argv) {
 
 	std::cout << "tracks: " << g_list_length(itdb->tracks) << std::endl;
 	GList *it;
+	Scrobble *first = nullptr;
+	Scrobble *prev = nullptr;
+	int n = 0;
 	for (it = itdb->tracks; it != NULL; it = it->next) {
 		Itdb_Track *tr = (Itdb_Track*)it->data;
 		if (tr->playcount < 1) continue;
@@ -35,16 +39,45 @@ int main(int argc, char **argv) {
 		unsigned short playcount = static_cast<unsigned short>(tr->playcount);
 		unsigned long ts = static_cast<unsigned long>(tr->time_played);
 
-		cache.dbset(&cache.db, playcount, ts);
+		cache.dbset(&cache.db, title, playcount, ts);
 		try {
-			auto cData = cache.initdb.at(tr->title);
-			
+			std::pair<unsigned short, unsigned long> cData;
+			if (cache.initdb.contains(tr->title)) {
+				cData = cache.initdb.at(tr->title);
+			} else {
+				cData = std::pair(0, 0);
+			}
+
+			if (ts <= cData.second) continue;
+			int plays = playcount - cData.first;
+			for (int i = 0; i < plays; i++) {
+				if (n == 50) {
+					lfm.scrobble(first);
+					first = nullptr;
+					prev = nullptr;
+				}
+				Scrobble *sc = (Scrobble*)malloc(sizeof(Scrobble));
+				sc->track = tr;
+				// add 60 seconds between repeated tracks bc itdb doesnt track all timestamps for plays
+				sc->ts = tr->time_played + i * 60;
+				if (first == nullptr) {
+					first = sc;
+					prev = sc;
+				} else {
+					prev->next = sc;
+					prev = sc;
+				}
+				n++;
+			}
 		} catch (...) {
 			continue;
 		}
 		std::cout << tr->title << ": " << tr->playcount << " @ " << tr->time_played << std::endl;
+		break;
 	}
+	lfm.scrobble(first);
 
+	cache.write();
 	itdb_free(itdb);
 	cURLpp::terminate();
 	return 0;

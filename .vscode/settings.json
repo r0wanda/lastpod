@@ -1,0 +1,9 @@
+{
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/hdd/code/code/lastpod",
+            "binaryPath": "/hdd/code/code/lastpod/lastpod",
+            "binaryArgs": ["/run/media/rowan/ROWAN_S IPO"]
+        }
+    ]
+}

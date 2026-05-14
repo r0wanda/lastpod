@@ -12,16 +12,17 @@ typedef std::unordered_map<std::string, std::pair<unsigned short, unsigned long>
 class Cache {
 public:
 	unsigned long initdbts;
+	std::string lfmsk;
 	ITdb initdb;
 	ITdb db;
     Cache(): initdbts(0) {
         const char *home = std::getenv("HOME");
-        path = fs::path(home) / ".lastpod.csv";
+        path = /*fs::path(home) /*/ ".lastpod";
 		read();
 	}
 	unsigned long unixtime() {
 		const auto t = std::chrono::system_clock::now();
-		return std::chrono::duration_cast<std::chrono::seconds>(p.time_since_epoch()).count();
+		return std::chrono::duration_cast<std::chrono::seconds>(t.time_since_epoch()).count();
 	}
 	void read() {
 		initdb = ITdb();
@@ -29,6 +30,7 @@ public:
 		std::ifstream strm(path);
 		if (!strm.is_open()) return;
 		strm >> initdbts;
+		strm >> lfmsk;
 		std::string title;
 		unsigned short plays;
 		unsigned long ts;
@@ -38,11 +40,12 @@ public:
 		strm.close();
 	}
 	void dbset(ITdb *db, std::string title, unsigned short plays, unsigned long ts) {
-		db->at(title) = std::pair<unsigned short, unsigned long>(plays, ts);
+		(*db)[title] = std::pair<unsigned short, unsigned long>(plays, ts);
 	}
 	void write() {
 		std::fstream strm(path, std::fstream::out | std::fstream::trunc);
 		strm << unixtime() << "\n";
+		strm << lfmsk << "\n";
 		for (auto &it : db) {
 			strm << it.first << "\n";
 			strm << it.second.first << "\n";
