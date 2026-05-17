@@ -1,0 +1,3 @@
+ACTION=="add", SUBSYSTEM=="usb", SYSFS{idVendor}=="FIRST", SYSFS{idProduct}=="SECOND", RUN{program}+="/usr/bin/systemd-mount --options='uid=USER,gid=USER,fmask=0113,dmask=0113' --no-block --automount=yes --collect $devnode /media/lastpod"
+ACTION=="add", SUBSYSTEM=="usb", SYSFS{idVendor}=="FIRST", SYSFS{idProduct}=="SECOND", RUN+="/usr/bin/systemd-run --uid=USER --gid=USER --description 'Lastpod worker' --property=After=media-usb.mount /home/USER/lastpod/lastpod.sh /media/lastpod"
+ACTION=="remove", SUBSYSTEM=="usb", SYSFS{idVendor}=="FIRST", SYSFS{idProduct}=="SECOND", RUN+="/usr/bin/systemd-umount /media/lastpod"

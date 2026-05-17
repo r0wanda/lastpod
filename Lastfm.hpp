@@ -12,9 +12,10 @@
 #include <curlpp/Options.hpp>
 #include <nlohmann/json.hpp>
 #include "Cache.hpp"
+#include "deps/encodeuricomponent.hpp"
 
 struct Scrobble {
-	Itdb_Track *track;
+	Itdb_Track *track = nullptr;
 	Scrobble *next = nullptr;
 	unsigned long ts;
 };
@@ -49,7 +50,7 @@ public:
 		sig += secret;
 		url += "&api_sig=" + md5(sig);
 
-		std::cout << url << std::endl;
+		//std::cout << url << std::endl;
 		req.setOpt(new Url(url));
 		std::ostringstream sstrm;
 		sstrm << req;
@@ -67,19 +68,19 @@ public:
 		std::string body = "";
 		bool first = true;
 		for (auto &opt : opts) {
-			std::cout << opt.first << ":" << opt.second << std::endl;
+			//std::cout << opt.first << ":" << opt.second << std::endl;
 			if (first) {
-				body += "?";
+				//body += "?";
 				first = false;
 			} else body += "&";
-			body += opt.first + "=" + opt.second;
+			body += encodeURIComponent(opt.first) + "=" + encodeURIComponent(opt.second);
 			sig += opt.first + opt.second;
 		}
-		body += "&format=json";
 		sig += secret;
 		body += "&api_sig=" + md5(sig);
+		body += "&format=json";
 
-		std::cout << body << std::endl;
+		//std::cout << body << std::endl;
 
 		std::list<std::string> headers;
 		headers.push_back("User-Agent: " + userAgent);
@@ -88,13 +89,14 @@ public:
 		using namespace curlpp::Options;
 		curlpp::Easy req;
 		req.setOpt(new HttpHeader(headers));
+		req.setOpt(new Encoding("utf8"));
 		req.setOpt(new PostFields(body));
 		req.setOpt(new PostFieldSize(body.length()));
 		req.setOpt(new Url(url));
 		std::ostringstream sstrm;
 		sstrm << req;
 
-		std::cout << sstrm.str();
+		//std::cout << sstrm.str();
 		nlohmann::json res = nlohmann::json::parse(sstrm.str());
 		if (res.contains("error")) std::cerr << "error " << res["error"] << ": " << res["message"] << std::endl;
 		return res;
@@ -127,7 +129,7 @@ public:
 		std::cin.ignore();
 
 		auto session = fetch("auth.getSession", {{"token", token}});
-		std::cout << session;
+		//std::cout << session;
 		sk = session["session"]["key"];
 		std::cout << "logged in as " << session["session"]["name"] << std::endl;
 	}
@@ -135,7 +137,8 @@ public:
 		std::map<std::string, std::string> body;
 		int i = 0;
 		Scrobble *prev = nullptr;
-		for (Scrobble *sc = tracks; sc->next != nullptr; sc = sc->next) {
+		Scrobble *sc = tracks;
+		while (sc != nullptr) {
 			if (i == 50) {
 				std::cerr << "too many tracks in one batch" << std::endl;
 				break;
@@ -149,9 +152,13 @@ public:
 			body[scrobbleI(i, "album")] = std::string(tr->album);
 			body[scrobbleI(i, "duration")] = std::to_string(tr->tracklen / 1000);
 			prev = sc;
+			sc = sc->next;
+			i++;
 		}
 		free(prev);
-		post("track.scrobble", body);
+		nlohmann::json res = post("track.scrobble", body);
+		std::cout << "ignored: " << res["scrobbles"]["@attr"]["ignored"] << std::endl;
+		std::cout << "accepted: " << res["scrobbles"]["@attr"]["accepted"] << std::endl;
 	}
 private:
 	inline std::string scrobbleI(int i, std::string key) {

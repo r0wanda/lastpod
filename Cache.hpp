@@ -29,13 +29,16 @@ public:
 		db = ITdb();
 		std::ifstream strm(path);
 		if (!strm.is_open()) return;
-		strm >> initdbts;
-		strm >> lfmsk;
+		std::string idbts;
+		std::getline(strm, idbts);
+		std::getline(strm, lfmsk);
+		initdbts = std::stoul(idbts);
 		std::string title;
-		unsigned short plays;
-		unsigned long ts;
-		while (strm >> title >> plays >> ts) {
-			dbset(&initdb, title, plays, ts);
+		std::string plays;
+		std::string ts;
+		while (std::getline(strm, title) && std::getline(strm, plays) && std::getline(strm, ts)) {
+			//std::cout << title << ": " << plays << " @ " << ts << std::endl;
+			dbset(&initdb, title, static_cast<unsigned short>(std::stoul(plays)), std::stoul(ts));
 		}
 		strm.close();
 	}
