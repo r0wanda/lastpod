@@ -84,14 +84,16 @@ int main(int argc, char **argv) {
 		//std::cout << tr->title << ": " << tr->playcount << " @ " << tr->time_played << std::endl;
 	}
 	int ignf = lfm.scrobble(first, n);
-#ifdef RPI
-	leds.blink(ignf, 500, 100);
-#endif
 	std::cout << "scrobbled " << (total + n) << " songs" << std::endl;
 
 	cache.write();
 	itdb_free(itdb);
 	cURLpp::terminate();
 	eject(inp);
+#ifdef RPI
+	leds.blinkRed(ignf, 500, 100);
+	leds.blinkGreen(total + n - ignf, 500, 100);
+	leds.close();
+#endif
 	return 0;
 }

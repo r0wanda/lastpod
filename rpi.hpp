@@ -20,7 +20,24 @@ public:
 			mleep(deloff);
 		}
 	}
+	void blinkRed(unsigned int n, unsigned int del, unsigned int deloff) {
+		for (int i = 0; i < n; i++) {
+			onRed();
+			mleep(del);
+			offRed();
+			mleep(deloff);
+		}
+	}
+	void blinkGreen(unsigned int n, unsigned int del, unsigned int deloff) {
+		for (int i = 0; i < n; i++) {
+			onGreen();
+			mleep(del);
+			offGreen();
+			mleep(deloff);
+		}
+	}
 	void close() {
+		blinkRed(1, 750, 500);
 		ledClose("/sys/class/leds/led0/trigger", og0);
 		ledClose("/sys/class/leds/led1/trigger", og1);
 	}
