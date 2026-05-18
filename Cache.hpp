@@ -2,10 +2,8 @@
 #include <chrono>
 #include <cstdlib>
 #include <fstream>
-#include <filesystem>
 #include <unordered_map>
-
-namespace fs = std::filesystem;
+#include "fs.hpp"
 
 typedef std::unordered_map<std::string, std::pair<unsigned short, unsigned long>> ITdb;
 

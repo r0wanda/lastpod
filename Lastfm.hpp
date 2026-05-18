@@ -6,6 +6,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <gpod/itdb.h>
+#include <openssl/evp.h>
 #include <openssl/md5.h>
 #include <curlpp/cURLpp.hpp>
 #include <curlpp/Easy.hpp>
@@ -133,12 +134,12 @@ public:
 		sk = session["session"]["key"];
 		std::cout << "logged in as " << session["session"]["name"] << std::endl;
 	}
-	void scrobble(Scrobble *tracks) {
+	int scrobble(Scrobble *tracks, int len) {
 		std::map<std::string, std::string> body;
 		int i = 0;
 		Scrobble *prev = nullptr;
 		Scrobble *sc = tracks;
-		while (sc != nullptr) {
+		while (sc != nullptr && i < len) {
 			if (i == 50) {
 				std::cerr << "too many tracks in one batch" << std::endl;
 				break;
@@ -157,8 +158,10 @@ public:
 		}
 		free(prev);
 		nlohmann::json res = post("track.scrobble", body);
-		std::cout << "ignored: " << res["scrobbles"]["@attr"]["ignored"] << std::endl;
+		int ignored = res["scrobbles"]["@attr"]["ignored"];
+		std::cout << "ignored: " << ignored << std::endl;
 		std::cout << "accepted: " << res["scrobbles"]["@attr"]["accepted"] << std::endl;
+		return ignored;
 	}
 private:
 	inline std::string scrobbleI(int i, std::string key) {
@@ -169,10 +172,7 @@ private:
 	std::string md5(std::string sig) {
 		std::ostringstream ssig;
 		unsigned char digest[MD5_DIGEST_LENGTH];
-		MD5_CTX ctx;
-		MD5_Init(&ctx);
-		MD5_Update(&ctx, sig.c_str(), sig.length());
-		MD5_Final(digest, &ctx);
+		EVP_Q_digest(NULL, "MD5", NULL, sig.c_str(), sig.size(), digest, NULL);
 		for (int i = 0; i < MD5_DIGEST_LENGTH; i++) {
 			ssig << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(digest[i]);
 		}

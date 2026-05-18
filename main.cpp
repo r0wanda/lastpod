@@ -4,12 +4,19 @@
 #include <curlpp/cURLpp.hpp>
 #include "Lastfm.hpp"
 #include "Cache.hpp"
+#include "eject.hpp"
 #include "deps/dotenv.h"
+#ifdef RPI
+#include "rpi.hpp"
+#endif
 #define GERROR(e, fatal) if (e) { if (e->message) std::cerr << e->message; g_error_free(e); e = NULL; if (fatal) return 1; }
 
 int main(int argc, char **argv) {
 	cURLpp::initialize();
 	dotenv::init();
+#ifdef RPI
+	Leds leds();
+#endif
 
 	Lastfm lfm(std::getenv("LASTFM_API_KEY"), std::getenv("LASTFM_API_SECRET"));
 	Cache cache;
@@ -52,7 +59,10 @@ int main(int argc, char **argv) {
 		int plays = playcount - cData.first;
 		for (int i = 0; i < plays; i++) {
 			if (n == 48) {
-				lfm.scrobble(first);
+				int ign = lfm.scrobble(first, 48);
+#ifdef RPI
+				leds.blink(ign, 500, 100);
+#endif
 				first = nullptr;
 				prev = nullptr;
 				total += n;
@@ -73,11 +83,15 @@ int main(int argc, char **argv) {
 		}
 		//std::cout << tr->title << ": " << tr->playcount << " @ " << tr->time_played << std::endl;
 	}
-	lfm.scrobble(first);
+	int ignf = lfm.scrobble(first, n);
+#ifdef RPI
+	leds.blink(ignf, 500, 100);
+#endif
 	std::cout << "scrobbled " << (total + n) << " songs" << std::endl;
 
 	cache.write();
 	itdb_free(itdb);
 	cURLpp::terminate();
+	eject(inp);
 	return 0;
 }
