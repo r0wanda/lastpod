@@ -1,5 +1,5 @@
 main: main.cpp Cache.hpp Lastfm.hpp
-	g++ -o lastpod main.cpp -Wall -Wextra -std=c++20 -g `pkg-config libgpod-1.0 --cflags --libs` -lglib-2.0 `pkg-config curlpp --cflags --libs` -lcrypto
+	g++ -o lastpod main.cpp -Wall -Wextra -std=c++20 -g `pkg-config libgpod-1.0 --cflags --libs` -lglib-2.0 `pkg-config curlpp --cflags --libs` `$(pkg-config --cflags --libs gio-2.0)` -lcrypto
 
 rpi: main.cpp Cache.hpp Lastfm.hpp
-	g++ -o lastpod main.cpp -Wall -Wextra -DRPI -std=c++20 -g `pkg-config libgpod-1.0 --cflags --libs` -lglib-2.0 `pkg-config curlpp --cflags --libs` -lcrypto
+	g++ -o lastpod main.cpp -Wall -Wextra -DRPI -std=c++20 -g `pkg-config libgpod-1.0 --cflags --libs` -lglib-2.0 `pkg-config curlpp --cflags --libs` `$(pkg-config --cflags --libs gio-2.0)` -lcrypto
