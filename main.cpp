@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
 	cURLpp::initialize();
 	dotenv::init();
 #ifdef RPI
-	Leds leds();
+	Leds leds;
 #endif
 
 	Lastfm lfm(std::getenv("LASTFM_API_KEY"), std::getenv("LASTFM_API_SECRET"));

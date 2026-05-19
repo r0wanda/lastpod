@@ -172,7 +172,10 @@ private:
 	std::string md5(std::string sig) {
 		std::ostringstream ssig;
 		unsigned char digest[MD5_DIGEST_LENGTH];
-		EVP_Q_digest(NULL, "MD5", NULL, sig.c_str(), sig.size(), digest, NULL);
+		MD5_CTX ctx;
+		MD5_Init(&ctx);
+		MD5_Update(&ctx, sig.c_str(), sig.length());
+		MD5_Final(digest, &ctx);
 		for (int i = 0; i < MD5_DIGEST_LENGTH; i++) {
 			ssig << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(digest[i]);
 		}
