@@ -1,4 +1,5 @@
 #include <string>
+#include <string.h>
 #include <iostream>
 #include <gpod/itdb.h>
 #include <curlpp/cURLpp.hpp>
@@ -14,8 +15,10 @@
 int main(int argc, char **argv) {
 	cURLpp::initialize();
 	dotenv::init();
+	std::string inp;
 #ifdef RPI
 	Leds leds;
+	inp = leds.waitForiPod();
 #endif
 
 	Lastfm lfm(std::getenv("LASTFM_API_KEY"), std::getenv("LASTFM_API_SECRET"));
@@ -24,14 +27,17 @@ int main(int argc, char **argv) {
 
 	GError *err = nullptr;
 	Itdb_iTunesDB *itdb;
-	gchar *inp = nullptr;
-	if (argc < 2) {
-		std::cerr << "usage: " << g_path_get_basename(argv[0]) << " <mountpoint>" << std::endl;
-		return 1;
+	if (inp.empty()) {
+		if (argc < 2) {
+			std::cerr << "usage: " << g_path_get_basename(argv[0]) << " <mountpoint>" << std::endl;
+			return 1;
+		}
+		inp = argv[1];
 	}
-	inp = argv[1];
 
-	itdb = itdb_parse(inp, &err);
+	gchar *itdbpath = (gchar*)malloc(sizeof(gchar) * (inp.size() + 1));
+	strncpy(itdbpath, inp.c_str(), inp.size() + 1);
+	itdb = itdb_parse(itdbpath, &err);
 	GERROR(err, true);
 
 	std::cout << "tracks: " << g_list_length(itdb->tracks) << std::endl;
@@ -91,8 +97,9 @@ int main(int argc, char **argv) {
 	cURLpp::terminate();
 	eject(inp);
 #ifdef RPI
-	leds.blinkRed(ignf, 500, 100);
-	leds.blinkGreen(total + n - ignf, 500, 100);
+	int accepted = total + n - ignf;
+	leds.blinkRed(MAX(ignf, 0), 500, 100);
+	leds.blinkGreen(MAX(accepted, 0), 500, 100);
 	leds.close();
 #endif
 	return 0;

@@ -124,8 +124,11 @@ public:
 		auto tok = fetch("auth.getToken", {});
 		std::string token = tok["token"];
 
+		std::cout << "\"https://www.last.fm/api/auth/?api_key=" + apikey + "&token=" + token + "\"" << std::endl;
+#ifndef RPI
 		std::string cmd = "xdg-open \"https://www.last.fm/api/auth/?api_key=" + apikey + "&token=" + token + "\"";
 		std::system(cmd.c_str());
+#endif
 		std::cout << "press enter when authentication is complete";
 		std::cin.ignore();
 

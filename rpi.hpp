@@ -4,6 +4,7 @@
 #include <thread>
 #include <sstream>
 #include <fstream>
+#include "fs.hpp"
 
 class Leds {
 public:
@@ -60,6 +61,11 @@ public:
 	}
 	void offRed() {
 		off("/sys/class/leds/led1/brightness");
+	}
+	std::string waitForiPod() {
+		fs::path ipod{"/media/usb0"};
+		while (!fs::exists(ipod) || fs::is_empty(ipod)) mleep(2500);
+		return ipod;
 	}
 private:
 	std::string og0;

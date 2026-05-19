@@ -1,0 +1,16 @@
+[Unit]
+Description=Lastpod
+After=network.target
+Before=lastpod-umount.service
+DefaultDependencies=no
+
+[Service]
+ExecStart=/bin/bash /home/rowan/lastpod/lastpod.sh
+Type=oneshot
+User=rowan
+TimeoutStartSec=0
+Restart=no
+
+[Install]
+WantedBy=default.target
+RequiredBy=network.target

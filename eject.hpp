@@ -6,7 +6,7 @@
 #include <mntent.h>
 #include "fs.hpp"
 
-void eject(const char *path) {
+void eject(std::string path) {
 	fs::path inp(path);
 	struct mntent *ent;
 	FILE *file;

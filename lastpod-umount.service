@@ -1,0 +1,13 @@
+[Unit]
+Description=Lastpod Ejector
+After=lastpod.service
+Requires=lastpod.service
+
+[Service]
+ExecStart=/bin/bash /home/rowan/lastpod/eject.sh
+Type=oneshot
+TimeoutStartSec=0
+Restart=no
+
+[Install]
+WantedBy=default.target

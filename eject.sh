@@ -1,4 +1,6 @@
 #!/bin/bash
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
-./lastpod &> log.txt
+./eject
+
+echo "hii"
