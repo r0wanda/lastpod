@@ -13,7 +13,7 @@ public:
 		blink(4, 100, 100);
 	}
 	void blink(unsigned int n, unsigned int del, unsigned int deloff) {
-		for (int i = 0; i < n; i++) {
+		for (unsigned int i = 0; i < n; i++) {
 			onBoth();
 			mleep(del);
 			offBoth();
@@ -21,7 +21,7 @@ public:
 		}
 	}
 	void blinkRed(unsigned int n, unsigned int del, unsigned int deloff) {
-		for (int i = 0; i < n; i++) {
+		for (unsigned int i = 0; i < n; i++) {
 			onRed();
 			mleep(del);
 			offRed();
@@ -29,7 +29,7 @@ public:
 		}
 	}
 	void blinkGreen(unsigned int n, unsigned int del, unsigned int deloff) {
-		for (int i = 0; i < n; i++) {
+		for (unsigned int i = 0; i < n; i++) {
 			onGreen();
 			mleep(del);
 			offGreen();
